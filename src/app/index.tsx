@@ -1,6 +1,22 @@
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { supabase } from '../lib/supabase';
 
 export default function HomeScreen() {
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    async function loadProfile() {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .limit(1)
+        .single();
+      setProfile(data);
+    }
+    loadProfile();
+  }, []);
+
   return (
     <ScrollView style={styles.container}>
 
@@ -20,9 +36,9 @@ export default function HomeScreen() {
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>S</Text>
         </View>
-        <Text style={styles.name}>Shadi Kabalan</Text>
-        <Text style={styles.title}>Founder & CEO</Text>
-        <Text style={styles.company}>KNOT Technologies • Doha, Qatar</Text>
+        <Text style={styles.name}>{profile?.full_name}</Text>
+        <Text style={styles.title}>{profile?.title}</Text>
+        <Text style={styles.company}>{profile?.company} • Doha, Qatar</Text>
         <View style={styles.badge}>
           <Text style={styles.badgeText}>✓ Verified</Text>
         </View>

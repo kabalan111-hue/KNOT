@@ -7,6 +7,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [fullName, setFullName] = useState('');
 
   async function signIn() {
     setLoading(true);
@@ -19,14 +20,24 @@ export default function LoginScreen() {
     setLoading(false);
   }
 
-  async function signUp() {
+ async function signUp() {
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
-    if (error) setMessage(error.message);
-    else setMessage('Account created! Check your email.');
+    if (error) {
+      setMessage(error.message);
+      setLoading(false);
+      return;
+    }
+    if (data.user) {
+      await supabase.from('profiles').insert({
+        id: data.user.id,
+        full_name: fullName,
+      });
+    }
+    setMessage('Account created! Check your email.');
     setLoading(false);
   }
 
@@ -44,6 +55,14 @@ export default function LoginScreen() {
             <Text style={styles.messageText}>{message}</Text>
           </View>
         ) : null}
+        <Text style={styles.label}>Full Name</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Your full name"
+          placeholderTextColor="#8899BB"
+          value={fullName}
+          onChangeText={setFullName}
+        />
         <Text style={styles.label}>Email</Text>
         <TextInput
           style={styles.input}
