@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { supabase } from '../lib/supabase';
 
 export default function HomeScreen() {
@@ -34,7 +34,11 @@ export default function HomeScreen() {
 
       <View style={styles.profileCard}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>S</Text>
+          {profile?.avatar_url ? (
+            <Image source={{ uri: profile.avatar_url }} style={styles.avatarImage} />
+          ) : (
+            <Text style={styles.avatarText}>{profile?.full_name ? profile.full_name.charAt(0) : 'K'}</Text>
+          )}
         </View>
         <Text style={styles.name}>{profile?.full_name}</Text>
         <Text style={styles.title}>{profile?.title}</Text>
@@ -49,12 +53,12 @@ export default function HomeScreen() {
 
       <View style={styles.statsRow}>
         <View style={styles.stat}>
-          <Text style={styles.statNum}>1.2K</Text>
+          <Text style={styles.statNum}>{profile?.profile_views ?? 0}</Text>
           <Text style={styles.statLabel}>Profile Views</Text>
         </View>
         <View style={styles.statDivider} />
         <View style={styles.stat}>
-          <Text style={styles.statNum}>340</Text>
+          <Text style={styles.statNum}>{profile?.connections ?? 0}</Text>
           <Text style={styles.statLabel}>Connections</Text>
         </View>
         <View style={styles.statDivider} />
@@ -123,7 +127,8 @@ const styles = StyleSheet.create({
   iconBtn: { backgroundColor: '#1A3A6B', width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
   iconText: { fontSize: 18 },
   profileCard: { backgroundColor: '#1A3A6B', margin: 20, borderRadius: 20, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: '#C9A84C' },
-  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#C9A84C', alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
+  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#C9A84C', alignItems: 'center', justifyContent: 'center', marginBottom: 12, overflow: 'hidden' },
+  avatarImage: { width: 80, height: 80, borderRadius: 40 },
   avatarText: { fontSize: 32, fontWeight: 'bold', color: '#0A1628' },
   name: { fontSize: 22, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 4 },
   title: { fontSize: 14, color: '#C9A84C', marginBottom: 4 },
