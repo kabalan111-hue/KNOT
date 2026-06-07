@@ -1,7 +1,7 @@
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { supabase } from '../lib/supabase';
-
 export default function HomeScreen() {
   const [profile, setProfile] = useState<any>(null);
 
@@ -48,6 +48,9 @@ export default function HomeScreen() {
         </View>
         <TouchableOpacity style={styles.shareBtn}>
           <Text style={styles.shareBtnText}>📱 Share My Identity</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.editBtn} onPress={() => router.push('/edit-profile')}>
+          <Text style={styles.editBtnText}>✏️ Edit Profile</Text>
         </TouchableOpacity>
       </View>
 
@@ -137,6 +140,8 @@ const styles = StyleSheet.create({
   badgeText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 13 },
   shareBtn: { backgroundColor: '#C9A84C', paddingHorizontal: 30, paddingVertical: 12, borderRadius: 12, width: '100%', alignItems: 'center' },
   shareBtnText: { color: '#0A1628', fontWeight: 'bold', fontSize: 15 },
+  editBtn: { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#C9A84C', paddingHorizontal: 30, paddingVertical: 12, borderRadius: 12, width: '100%', alignItems: 'center', marginTop: 10 },
+  editBtnText: { color: '#C9A84C', fontWeight: 'bold', fontSize: 15 },
   statsRow: { flexDirection: 'row', backgroundColor: '#1A3A6B', marginHorizontal: 20, marginBottom: 20, borderRadius: 14, padding: 16, justifyContent: 'space-around', alignItems: 'center' },
   stat: { alignItems: 'center' },
   statNum: { fontSize: 20, fontWeight: 'bold', color: '#C9A84C' },
