@@ -72,7 +72,7 @@ export default function HomeScreen() {
         </View>
         <View style={styles.statDivider} />
         <View style={styles.stat}>
-          <Text style={styles.statNum}>48</Text>
+          <Text style={styles.statNum}>{profile?.posts ?? 0}</Text>
           <Text style={styles.statLabel}>Posts</Text>
         </View>
       </View>
