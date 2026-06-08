@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
@@ -9,10 +10,15 @@ export default function QRScreen() {
 
   useEffect(() => {
     async function loadProfile() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.replace('/login');
+        return;
+      }
       const { data } = await supabase
         .from('profiles')
         .select('*')
-        .limit(1)
+        .eq('id', user.id)
         .single();
       setProfile(data);
     }
