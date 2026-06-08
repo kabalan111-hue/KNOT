@@ -52,7 +52,7 @@ export default function HomeScreen() {
         <View style={styles.badge}>
           <Text style={styles.badgeText}>✓ Verified</Text>
         </View>
-        <TouchableOpacity style={styles.shareBtn}>
+        <TouchableOpacity style={styles.shareBtn} onPress={() => router.push('/qr')}>
           <Text style={styles.shareBtnText}>📱 Share My Identity</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.editBtn} onPress={() => router.push('/edit-profile')}>
