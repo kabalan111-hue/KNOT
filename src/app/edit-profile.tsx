@@ -15,11 +15,16 @@ export default function EditProfileScreen() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    async function loadProfile() {
+ async function loadProfile() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.replace('/login');
+        return;
+      }
       const { data } = await supabase
         .from('profiles')
         .select('*')
-        .limit(1)
+        .eq('id', user.id)
         .single();
       if (data) {
         setProfileId(data.id);
