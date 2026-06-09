@@ -37,6 +37,7 @@ export default function QRScreen() {
       setTimeout(() => setCopied(false), 1500);
     }
   }
+
   async function handleShare() {
     const shareText = `Check out my professional identity on KNOT: ${profileUrl}`;
     if (navigator?.share) {
@@ -53,6 +54,31 @@ export default function QRScreen() {
       navigator.clipboard.writeText(shareText);
       alert('Link copied to clipboard!');
     }
+  }
+
+  function handleSaveQR() {
+    const container = document.getElementById('qr-code');
+    const svg = container?.querySelector('svg');
+    if (!svg) return;
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement('canvas');
+    canvas.width = 180;
+    canvas.height = 180;
+    const ctx = canvas.getContext('2d');
+    const img = new window.Image();
+    img.onload = function () {
+      if (ctx) {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, 180, 180);
+        ctx.drawImage(img, 0, 0);
+      }
+      const pngUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = pngUrl;
+      link.download = `${profileSlug}-knot-qr.png`;
+      link.click();
+    };
+    img.src = 'data:image/svg+xml;base64,' + window.btoa(unescape(encodeURIComponent(svgData)));
   }
 
   return (
@@ -82,7 +108,7 @@ export default function QRScreen() {
       <View style={styles.qrCard}>
         <Text style={styles.qrTitle}>Scan to View My Identity</Text>
         <Text style={styles.qrSub}>Point any camera to connect instantly</Text>
-        <View style={styles.qrContainer}>
+        <View style={styles.qrContainer} nativeID="qr-code">
           <QRCode
             value={profileUrl}
             size={180}
@@ -100,7 +126,7 @@ export default function QRScreen() {
           <Text style={styles.shareIcon}>🔗</Text>
           <Text style={styles.shareBtnText}>{copied ? 'Copied!' : 'Copy Link'}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.shareBtn}>
+        <TouchableOpacity style={styles.shareBtn} onPress={handleSaveQR}>
           <Text style={styles.shareIcon}>💾</Text>
           <Text style={styles.shareBtnText}>Save QR</Text>
         </TouchableOpacity>
