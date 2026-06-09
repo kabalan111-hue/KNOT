@@ -118,7 +118,7 @@ export default function HomeScreen() {
           <Text style={styles.quickIcon}>💼</Text>
           <Text style={styles.quickText}>Jobs</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.quickBtn}>
+        <TouchableOpacity style={styles.quickBtn} onPress={() => router.push('/verify')}>
           <Text style={styles.quickIcon}>✓</Text>
           <Text style={styles.quickText}>Verify</Text>
         </TouchableOpacity>
