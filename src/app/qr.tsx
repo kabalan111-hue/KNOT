@@ -37,6 +37,23 @@ export default function QRScreen() {
       setTimeout(() => setCopied(false), 1500);
     }
   }
+  async function handleShare() {
+    const shareText = `Check out my professional identity on KNOT: ${profileUrl}`;
+    if (navigator?.share) {
+      try {
+        await navigator.share({
+          title: profile?.full_name || 'My KNOT Identity',
+          text: shareText,
+          url: profileUrl,
+        });
+      } catch (e) {
+        // user cancelled, do nothing
+      }
+    } else if (navigator?.clipboard) {
+      navigator.clipboard.writeText(shareText);
+      alert('Link copied to clipboard!');
+    }
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -87,7 +104,7 @@ export default function QRScreen() {
           <Text style={styles.shareIcon}>💾</Text>
           <Text style={styles.shareBtnText}>Save QR</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.shareBtn}>
+        <TouchableOpacity style={styles.shareBtn} onPress={handleShare}>
           <Text style={styles.shareIcon}>📤</Text>
           <Text style={styles.shareBtnText}>Share</Text>
         </TouchableOpacity>
