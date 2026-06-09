@@ -106,7 +106,7 @@ export default function HomeScreen() {
       <Text style={styles.sectionTitle}>Quick Actions</Text>
 
       <View style={styles.quickActions}>
-        <TouchableOpacity style={styles.quickBtn}>
+       <TouchableOpacity style={styles.quickBtn} onPress={() => router.push('/qr')}>
           <Text style={styles.quickIcon}>🆔</Text>
           <Text style={styles.quickText}>My QR</Text>
         </TouchableOpacity>
