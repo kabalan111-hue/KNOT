@@ -28,7 +28,7 @@ export default function QRScreen() {
   const profileSlug = profile?.full_name
     ? profile.full_name.toLowerCase().replace(/\s+/g, '-')
     : 'my-identity';
-  const profileUrl = `https://knot.app/${profileSlug}`;
+    const profileUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://knot.app'}/p/${profileSlug}`;
 
   function handleCopyLink() {
     if (navigator?.clipboard) {
