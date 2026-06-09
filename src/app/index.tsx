@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 
 export default function HomeScreen() {
   const [profile, setProfile] = useState<any>(null);
+  const [activities, setActivities] = useState<any[]>([]);
 
   useEffect(() => {
     async function loadProfile() {
@@ -19,6 +20,13 @@ export default function HomeScreen() {
         .eq('id', user.id)
         .single();
       setProfile(data);
+
+      const { data: acts } = await supabase
+        .from('activities')
+        .select('*')
+        .eq('profile_id', user.id)
+        .order('created_at', { ascending: false });
+      if (acts) setActivities(acts);
     }
     loadProfile();
   }, []);
@@ -79,29 +87,15 @@ export default function HomeScreen() {
 
       <Text style={styles.sectionTitle}>Recent Activity</Text>
 
-      <View style={styles.activityItem}>
-        <Text style={styles.activityIcon}>👁️</Text>
-        <View style={styles.activityInfo}>
-          <Text style={styles.activityText}>12 people viewed your profile today</Text>
-          <Text style={styles.activityTime}>2 hours ago</Text>
+      {activities.map((act) => (
+        <View key={act.id} style={styles.activityItem}>
+          <Text style={styles.activityIcon}>{act.icon}</Text>
+          <View style={styles.activityInfo}>
+            <Text style={styles.activityText}>{act.text}</Text>
+            <Text style={styles.activityTime}>{act.time_text}</Text>
+          </View>
         </View>
-      </View>
-
-      <View style={styles.activityItem}>
-        <Text style={styles.activityIcon}>📱</Text>
-        <View style={styles.activityInfo}>
-          <Text style={styles.activityText}>Your QR was scanned 5 times at Qatar Forum</Text>
-          <Text style={styles.activityTime}>5 hours ago</Text>
-        </View>
-      </View>
-
-      <View style={styles.activityItem}>
-        <Text style={styles.activityIcon}>🤝</Text>
-        <View style={styles.activityInfo}>
-          <Text style={styles.activityText}>Ahmed Al-Rashid wants to connect</Text>
-          <Text style={styles.activityTime}>Yesterday</Text>
-        </View>
-      </View>
+      ))}
 
       <Text style={styles.sectionTitle}>Quick Actions</Text>
 
