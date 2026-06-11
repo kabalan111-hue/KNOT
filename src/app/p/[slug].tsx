@@ -14,7 +14,7 @@ export default function PublicProfileScreen() {
       const { data } = await supabase
         .from('profiles')
         .select('full_name, title, company, avatar_url, connections')
-        .ilike('full_name', (slug as string).replace(/-/g, ' '))
+        .eq('slug', slug as string)
         .limit(1)
         .single();
 
@@ -86,13 +86,4 @@ const styles = StyleSheet.create({
   avatar: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#C9A84C', alignItems: 'center', justifyContent: 'center', marginBottom: 16, overflow: 'hidden' },
   avatarImage: { width: 100, height: 100, borderRadius: 50 },
   avatarText: { fontSize: 40, fontWeight: 'bold', color: '#0A1628' },
-  name: { fontSize: 24, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 4 },
-  title: { fontSize: 15, color: '#C9A84C', marginBottom: 4 },
-  company: { fontSize: 13, color: '#8899BB', marginBottom: 16 },
-  badge: { backgroundColor: '#10B981', paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20, marginBottom: 20 },
-  badgeText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 13 },
-  statBox: { alignItems: 'center', backgroundColor: '#0A1628', paddingHorizontal: 30, paddingVertical: 14, borderRadius: 12 },
-  statNum: { fontSize: 22, fontWeight: 'bold', color: '#C9A84C' },
-  statLabel: { fontSize: 12, color: '#8899BB', marginTop: 2 },
-  footer: { color: '#8899BB', fontSize: 12, marginTop: 30 },
-});
+  name: { fontSize: 24, fontWeight: 'bold', color:
