@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 export default function QRScreen() {
   const [profile, setProfile] = useState<any>(null);
   const [copied, setCopied] = useState(false);
+  const [activeCheckin, setActiveCheckin] = useState<any>(null);
 
   useEffect(() => {
     async function loadProfile() {
@@ -21,12 +22,19 @@ export default function QRScreen() {
         .eq('id', user.id)
         .single();
       setProfile(data);
+
+      const { data: checkin } = await supabase.rpc('my_active_checkin');
+      if (checkin?.active) {
+        setActiveCheckin(checkin);
+      }
     }
     loadProfile();
   }, []);
 
   const profileSlug = profile?.slug || 'my-identity';
-    const profileUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://knot.app'}/p/${profileSlug}`;
+  const profileUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://knot.app'}/p/${profileSlug}`;
+
+  const isActive = !!activeCheckin;
 
   function handleCopyLink() {
     if (navigator?.clipboard) {
@@ -103,10 +111,16 @@ export default function QRScreen() {
         </View>
       </View>
 
-      <View style={styles.qrCard}>
+      {isActive && (
+        <View style={styles.activeBanner}>
+          <Text style={styles.activeBannerText}>✓ Inside: {activeCheckin.event_name}</Text>
+        </View>
+      )}
+
+      <View style={[styles.qrCard, isActive && styles.qrCardActive]}>
         <Text style={styles.qrTitle}>Scan to View My Identity</Text>
         <Text style={styles.qrSub}>Point any camera to connect instantly</Text>
-        <View style={styles.qrContainer} nativeID="qr-code">
+        <View style={[styles.qrContainer, isActive && styles.qrContainerActive]} nativeID="qr-code">
           <QRCode
             value={profileUrl}
             size={180}
@@ -171,10 +185,14 @@ const styles = StyleSheet.create({
   title: { fontSize: 12, color: '#8899BB', marginTop: 2 },
   badge: { marginLeft: 'auto', backgroundColor: '#10B981', width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   badgeText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 14 },
+  activeBanner: { backgroundColor: '#10B981', marginHorizontal: 20, marginTop: 16, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 16, alignItems: 'center' },
+  activeBannerText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 15 },
   qrCard: { backgroundColor: '#1A3A6B', margin: 20, borderRadius: 20, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: '#C9A84C' },
+  qrCardActive: { borderColor: '#10B981', borderWidth: 3 },
   qrTitle: { fontSize: 18, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 6 },
   qrSub: { fontSize: 12, color: '#8899BB', marginBottom: 20 },
   qrContainer: { padding: 16, backgroundColor: '#FFFFFF', borderRadius: 16, marginBottom: 16 },
+  qrContainerActive: { borderWidth: 6, borderColor: '#10B981' },
   urlBox: { backgroundColor: '#0A1628', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: '#2E5FA3' },
   urlText: { color: '#C9A84C', fontSize: 13, fontWeight: 'bold' },
   shareGrid: { flexDirection: 'row', marginHorizontal: 20, gap: 10, marginBottom: 20 },
