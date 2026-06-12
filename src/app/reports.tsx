@@ -81,6 +81,70 @@ export default function ReportsScreen() {
     return new Date(t).toLocaleString();
   }
 
+  function exportPDF() {
+    const rows = insideList.map((p, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${p.full_name || '—'}</td>
+        <td>${p.title || '—'}</td>
+        <td>${p.company || '—'}</td>
+        <td>${p.phone || '—'}</td>
+        <td>${fmtTime(p.checked_in_at)}</td>
+      </tr>
+    `).join('');
+
+    const html = `
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>KNOT Report</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 30px; color: #0A1628; }
+            h1 { color: #C9A84C; letter-spacing: 4px; margin-bottom: 4px; }
+            h2 { margin: 0 0 4px 0; font-size: 18px; }
+            .meta { color: #555; font-size: 13px; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th, td { border: 1px solid #ccc; padding: 8px 10px; font-size: 13px; text-align: left; }
+            th { background: #0A1628; color: #fff; }
+            tr:nth-child(even) { background: #f5f5f5; }
+          </style>
+        </head>
+        <body>
+          <h1>KNOT</h1>
+          <h2>${selectedEvent?.name || ''}</h2>
+          <div class="meta">
+            Report: Currently Inside &nbsp;|&nbsp;
+            Total: ${insideList.length} &nbsp;|&nbsp;
+            Generated: ${new Date().toLocaleString()}
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Title</th>
+                <th>Company</th>
+                <th>Phone</th>
+                <th>Check-in time</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+      }, 300);
+    }
+  }
+
   if (isOrganizer === null) {
     return (
       <View style={styles.centered}>
@@ -137,6 +201,11 @@ export default function ReportsScreen() {
             <View style={styles.panel}>
               <Text style={styles.countBig}>{insideList.length}</Text>
               <Text style={styles.countLabel}>Currently inside</Text>
+              {!loadingInside && insideList.length > 0 && (
+                <TouchableOpacity style={styles.exportBtn} onPress={exportPDF}>
+                  <Text style={styles.exportBtnText}>📄 Export PDF</Text>
+                </TouchableOpacity>
+              )}
               {loadingInside && <ActivityIndicator color="#C9A84C" style={{ marginTop: 20 }} />}
               {!loadingInside && insideList.length === 0 && <Text style={styles.empty}>No one inside right now</Text>}
               {insideList.map((p, i) => (
@@ -228,6 +297,8 @@ const styles = StyleSheet.create({
   panel: { width: '100%', alignItems: 'center' },
   countBig: { fontSize: 48, fontWeight: 'bold', color: '#10B981' },
   countLabel: { fontSize: 14, color: '#8899BB', marginBottom: 20 },
+  exportBtn: { backgroundColor: '#C9A84C', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 24, marginBottom: 20 },
+  exportBtnText: { color: '#0A1628', fontSize: 14, fontWeight: 'bold' },
   empty: { color: '#8899BB', fontSize: 14, marginTop: 16 },
   hint: { color: '#8899BB', fontSize: 12, marginBottom: 8, textAlign: 'center' },
   input: { width: '100%', backgroundColor: '#1A3A6B', borderRadius: 12, padding: 16, color: '#FFFFFF', fontSize: 15, borderWidth: 1, borderColor: '#2E5FA3', marginBottom: 12 },
