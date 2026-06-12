@@ -8,6 +8,7 @@ export default function EditProfileScreen() {
   const [fullName, setFullName] = useState('');
   const [title, setTitle] = useState('');
   const [company, setCompany] = useState('');
+  const [phone, setPhone] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [profileId, setProfileId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -15,7 +16,7 @@ export default function EditProfileScreen() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
- async function loadProfile() {
+    async function loadProfile() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         router.replace('/login');
@@ -31,6 +32,7 @@ export default function EditProfileScreen() {
         setFullName(data.full_name || '');
         setTitle(data.title || '');
         setCompany(data.company || '');
+        setPhone(data.phone || '');
         setAvatarUrl(data.avatar_url || '');
       }
     }
@@ -88,7 +90,7 @@ export default function EditProfileScreen() {
     setMessage('');
     const { error } = await supabase
       .from('profiles')
-      .update({ full_name: fullName, title: title, company: company, avatar_url: avatarUrl })
+      .update({ full_name: fullName, title: title, company: company, phone: phone, avatar_url: avatarUrl })
       .eq('id', profileId);
     setSaving(false);
     if (error) {
@@ -150,6 +152,16 @@ export default function EditProfileScreen() {
           onChangeText={setCompany}
           placeholder="Company"
           placeholderTextColor="#8899BB"
+        />
+
+        <Text style={styles.label}>Phone</Text>
+        <TextInput
+          style={styles.input}
+          value={phone}
+          onChangeText={setPhone}
+          placeholder="Phone number"
+          placeholderTextColor="#8899BB"
+          keyboardType="phone-pad"
         />
 
         <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={saving}>
