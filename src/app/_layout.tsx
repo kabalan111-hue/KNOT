@@ -48,7 +48,7 @@ export default function Layout() {
         }}
       />
 
-      <Tabs.Screen name="checkin" options={{ href: null }} />
+<Tabs.Screen name="checkin" options={{ href: null, tabBarStyle: { display: 'none' } }} />
       <Tabs.Screen name="feed" options={{ href: null }} />
       <Tabs.Screen name="jobs" options={{ href: null }} />
       <Tabs.Screen name="scan" options={{ href: null }} />
