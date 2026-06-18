@@ -47,6 +47,18 @@ export default function Layout() {
           tabBarIcon: () => <Text style={{fontSize: 22}}>🔔</Text>,
         }}
       />
+
+      <Tabs.Screen name="checkin" options={{ href: null }} />
+      <Tabs.Screen name="feed" options={{ href: null }} />
+      <Tabs.Screen name="jobs" options={{ href: null }} />
+      <Tabs.Screen name="scan" options={{ href: null }} />
+      <Tabs.Screen name="login" options={{ href: null }} />
+      <Tabs.Screen name="verify" options={{ href: null }} />
+      <Tabs.Screen name="explore" options={{ href: null }} />
+      <Tabs.Screen name="reports" options={{ href: null }} />
+      <Tabs.Screen name="exhibitions" options={{ href: null }} />
+      <Tabs.Screen name="edit-profile" options={{ href: null }} />
+      <Tabs.Screen name="p/[slug]" options={{ href: null }} />
     </Tabs>
   );
 }
