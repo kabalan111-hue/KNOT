@@ -53,6 +53,15 @@ export default function PostsScreen() {
     }
   }
 
+  async function handleDelete(postId: string) {
+    const confirmed = typeof window !== 'undefined' ? window.confirm('هل تريد حذف هذا المنشور؟') : true;
+    if (!confirmed) return;
+    const { error } = await supabase.from('posts').delete().eq('id', postId);
+    if (!error) {
+      await loadPosts();
+    }
+  }
+
   function timeAgo(dateStr: string) {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
@@ -131,6 +140,11 @@ export default function PostsScreen() {
               <Text style={styles.postTime}>{timeAgo(item.created_at)}</Text>
             </View>
             <Text style={styles.postContent}>{item.content}</Text>
+            {profile && item.profile_id === profile.id && (
+              <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDelete(item.id)}>
+                <Text style={styles.deleteBtnText}>🗑 حذف</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
         ListEmptyComponent={
@@ -168,6 +182,8 @@ const styles = StyleSheet.create({
   postTitle: { fontSize: 12, color: '#8899BB', marginTop: 1 },
   postTime: { fontSize: 12, color: '#5A6E94' },
   postContent: { fontSize: 15, color: '#E0E6F0', lineHeight: 22 },
+  deleteBtn: { alignSelf: 'flex-end', marginTop: 10, paddingVertical: 4, paddingHorizontal: 10 },
+  deleteBtnText: { color: '#FF6B6B', fontSize: 13, fontWeight: 'bold' },
   empty: { alignItems: 'center', padding: 40 },
   emptyText: { color: '#5A6E94', fontSize: 14 },
 });
