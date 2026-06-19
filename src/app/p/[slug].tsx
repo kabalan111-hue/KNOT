@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
 export default function PublicProfileScreen() {
@@ -14,14 +14,13 @@ export default function PublicProfileScreen() {
     async function loadProfile() {
       const { data } = await supabase
         .from('profiles')
-        .select('id, full_name, title, company, avatar_url, connections')
+        .select('id, full_name, title, company, avatar_url, connections, whatsapp, instagram, linkedin, facebook, website')
         .eq('slug', slug as string)
         .limit(1)
         .single();
 
       if (data) {
         setProfile(data);
-        // جيب بوستات هذا الشخص فقط
         const { data: userPosts } = await supabase
           .from('posts')
           .select('*')
@@ -36,6 +35,14 @@ export default function PublicProfileScreen() {
     }
     if (slug) loadProfile();
   }, [slug]);
+
+  function openLink(url: string) {
+    if (typeof window !== 'undefined') {
+      window.open(url, '_blank');
+    } else {
+      Linking.openURL(url);
+    }
+  }
 
   function timeAgo(dateStr: string) {
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -65,6 +72,8 @@ export default function PublicProfileScreen() {
     );
   }
 
+  const hasSocial = profile?.whatsapp || profile?.instagram || profile?.linkedin || profile?.facebook || profile?.website;
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.logo}>KNOT</Text>
@@ -88,9 +97,43 @@ export default function PublicProfileScreen() {
           <Text style={styles.statNum}>{profile?.connections ?? 0}</Text>
           <Text style={styles.statLabel}>Connections</Text>
         </View>
+
+        {hasSocial && (
+          <View style={styles.socialRow}>
+            {profile?.whatsapp && (
+              <TouchableOpacity style={styles.socialBtn} onPress={() => openLink(`https://wa.me/${profile.whatsapp}`)}>
+                <Text style={styles.socialIcon}>💬</Text>
+                <Text style={styles.socialLabel}>WhatsApp</Text>
+              </TouchableOpacity>
+            )}
+            {profile?.instagram && (
+              <TouchableOpacity style={styles.socialBtn} onPress={() => openLink(`https://instagram.com/${profile.instagram}`)}>
+                <Text style={styles.socialIcon}>📷</Text>
+                <Text style={styles.socialLabel}>Instagram</Text>
+              </TouchableOpacity>
+            )}
+            {profile?.linkedin && (
+              <TouchableOpacity style={styles.socialBtn} onPress={() => openLink(profile.linkedin)}>
+                <Text style={styles.socialIcon}>💼</Text>
+                <Text style={styles.socialLabel}>LinkedIn</Text>
+              </TouchableOpacity>
+            )}
+            {profile?.facebook && (
+              <TouchableOpacity style={styles.socialBtn} onPress={() => openLink(profile.facebook)}>
+                <Text style={styles.socialIcon}>👥</Text>
+                <Text style={styles.socialLabel}>Facebook</Text>
+              </TouchableOpacity>
+            )}
+            {profile?.website && (
+              <TouchableOpacity style={styles.socialBtn} onPress={() => openLink(profile.website)}>
+                <Text style={styles.socialIcon}>🌐</Text>
+                <Text style={styles.socialLabel}>Website</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </View>
 
-      {/* قسم البوستات */}
       <View style={styles.postsSection}>
         <Text style={styles.postsSectionTitle}>Posts</Text>
         {posts.length === 0 ? (
@@ -142,6 +185,10 @@ const styles = StyleSheet.create({
   statBox: { alignItems: 'center', backgroundColor: '#0A1628', paddingHorizontal: 30, paddingVertical: 14, borderRadius: 12 },
   statNum: { fontSize: 22, fontWeight: 'bold', color: '#C9A84C' },
   statLabel: { fontSize: 12, color: '#8899BB', marginTop: 2 },
+  socialRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 10, marginTop: 22 },
+  socialBtn: { alignItems: 'center', backgroundColor: '#0A1628', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: '#2E5FA3', minWidth: 80 },
+  socialIcon: { fontSize: 24, marginBottom: 4 },
+  socialLabel: { fontSize: 11, color: '#C9A84C', fontWeight: 'bold' },
   postsSection: { width: '90%', marginTop: 30 },
   postsSectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 14, marginLeft: 4 },
   noPosts: { color: '#5A6E94', fontSize: 14, textAlign: 'center', paddingVertical: 20 },
