@@ -27,6 +27,13 @@ export default function Layout() {
         }}
       />
       <Tabs.Screen
+        name="posts"
+        options={{
+          title: 'Community',
+          tabBarIcon: () => <Text style={{fontSize: 22}}>🌐</Text>,
+        }}
+      />
+      <Tabs.Screen
         name="qr"
         options={{
           title: 'My ID',
@@ -48,7 +55,7 @@ export default function Layout() {
         }}
       />
 
-<Tabs.Screen name="checkin" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+      <Tabs.Screen name="checkin" options={{ href: null, tabBarStyle: { display: 'none' } }} />
       <Tabs.Screen name="feed" options={{ href: null }} />
       <Tabs.Screen name="jobs" options={{ href: null }} />
       <Tabs.Screen name="scan" options={{ href: null }} />
