@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase';
 export default function PublicProfileScreen() {
   const { slug } = useLocalSearchParams();
   const [profile, setProfile] = useState<any>(null);
+  const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -13,13 +14,21 @@ export default function PublicProfileScreen() {
     async function loadProfile() {
       const { data } = await supabase
         .from('profiles')
-        .select('full_name, title, company, avatar_url, connections')
+        .select('id, full_name, title, company, avatar_url, connections')
         .eq('slug', slug as string)
         .limit(1)
         .single();
 
       if (data) {
         setProfile(data);
+        // جيب بوستات هذا الشخص فقط
+        const { data: userPosts } = await supabase
+          .from('posts')
+          .select('*')
+          .eq('profile_id', data.id)
+          .order('created_at', { ascending: false })
+          .limit(20);
+        setPosts(userPosts || []);
       } else {
         setNotFound(true);
       }
@@ -27,6 +36,17 @@ export default function PublicProfileScreen() {
     }
     if (slug) loadProfile();
   }, [slug]);
+
+  function timeAgo(dateStr: string) {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'now';
+    if (mins < 60) return `${mins}m`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d`;
+  }
 
   if (loading) {
     return (
@@ -70,6 +90,34 @@ export default function PublicProfileScreen() {
         </View>
       </View>
 
+      {/* قسم البوستات */}
+      <View style={styles.postsSection}>
+        <Text style={styles.postsSectionTitle}>Posts</Text>
+        {posts.length === 0 ? (
+          <Text style={styles.noPosts}>No posts yet</Text>
+        ) : (
+          posts.map((post) => (
+            <View key={post.id} style={styles.postCard}>
+              <View style={styles.postHeader}>
+                <View style={styles.postMiniAvatar}>
+                  {profile?.avatar_url ? (
+                    <Image source={{ uri: profile.avatar_url }} style={styles.postMiniAvatarImg} />
+                  ) : (
+                    <Text style={styles.postMiniAvatarText}>{profile?.full_name?.charAt(0) || 'K'}</Text>
+                  )}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.postName}>{profile?.full_name}</Text>
+                  <Text style={styles.postTitle}>{profile?.title || ''}</Text>
+                </View>
+                <Text style={styles.postTime}>{timeAgo(post.created_at)}</Text>
+              </View>
+              <Text style={styles.postContent}>{post.content}</Text>
+            </View>
+          ))
+        )}
+      </View>
+
       <Text style={styles.footer}>Powered by KNOT</Text>
     </ScrollView>
   );
@@ -94,5 +142,17 @@ const styles = StyleSheet.create({
   statBox: { alignItems: 'center', backgroundColor: '#0A1628', paddingHorizontal: 30, paddingVertical: 14, borderRadius: 12 },
   statNum: { fontSize: 22, fontWeight: 'bold', color: '#C9A84C' },
   statLabel: { fontSize: 12, color: '#8899BB', marginTop: 2 },
+  postsSection: { width: '90%', marginTop: 30 },
+  postsSectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 14, marginLeft: 4 },
+  noPosts: { color: '#5A6E94', fontSize: 14, textAlign: 'center', paddingVertical: 20 },
+  postCard: { backgroundColor: '#1A3A6B', borderRadius: 16, padding: 16, marginBottom: 12 },
+  postHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
+  postMiniAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#C9A84C', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  postMiniAvatarImg: { width: 40, height: 40, borderRadius: 20 },
+  postMiniAvatarText: { fontSize: 16, fontWeight: 'bold', color: '#0A1628' },
+  postName: { fontSize: 14, fontWeight: 'bold', color: '#FFFFFF' },
+  postTitle: { fontSize: 11, color: '#8899BB', marginTop: 1 },
+  postTime: { fontSize: 12, color: '#5A6E94' },
+  postContent: { fontSize: 15, color: '#E0E6F0', lineHeight: 22 },
   footer: { color: '#8899BB', fontSize: 12, marginTop: 30 },
 });
