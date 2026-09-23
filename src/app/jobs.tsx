@@ -6,18 +6,44 @@ import { supabase } from '../lib/supabase';
 export default function JobsScreen() {
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [appliedIds, setAppliedIds] = useState<number[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadJobs() {
-      const { data } = await supabase
+    async function loadData() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.replace('/login');
+        return;
+      }
+      setUserId(user.id);
+
+      const { data: jobsData } = await supabase
         .from('jobs')
         .select('*')
         .order('created_at', { ascending: false });
-      if (data) setJobs(data);
+      if (jobsData) setJobs(jobsData);
+
+      const { data: apps } = await supabase
+        .from('job_applications')
+        .select('job_id')
+        .eq('applicant_id', user.id);
+      if (apps) setAppliedIds(apps.map((a: any) => a.job_id));
+
       setLoading(false);
     }
-    loadJobs();
+    loadData();
   }, []);
+
+  async function handleApply(jobId: number) {
+    if (!userId || appliedIds.includes(jobId)) return;
+    const { error } = await supabase
+      .from('job_applications')
+      .insert({ job_id: jobId, applicant_id: userId });
+    if (!error) {
+      setAppliedIds([...appliedIds, jobId]);
+    }
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -34,22 +60,31 @@ export default function JobsScreen() {
       {loading ? (
         <ActivityIndicator size="large" color="#C9A84C" style={{ marginTop: 40 }} />
       ) : (
-        jobs.map((job) => (
-          <View key={job.id} style={styles.jobCard}>
-            <View style={styles.jobHeader}>
-              <Text style={styles.jobTitle}>{job.job_title}</Text>
-              <View style={styles.typeBadge}>
-                <Text style={styles.typeBadgeText}>{job.employment_type}</Text>
+        jobs.map((job) => {
+          const applied = appliedIds.includes(job.id);
+          return (
+            <View key={job.id} style={styles.jobCard}>
+              <View style={styles.jobHeader}>
+                <Text style={styles.jobTitle}>{job.job_title}</Text>
+                <View style={styles.typeBadge}>
+                  <Text style={styles.typeBadgeText}>{job.employment_type}</Text>
+                </View>
               </View>
+              <Text style={styles.jobLocation}>📍 {job.location}</Text>
+              <Text style={styles.jobSalary}>💰 {job.salary_range}</Text>
+              <Text style={styles.jobDesc}>{job.job_description}</Text>
+              <TouchableOpacity
+                style={[styles.applyBtn, applied && styles.appliedBtn]}
+                onPress={() => handleApply(job.id)}
+                disabled={applied}
+              >
+                <Text style={[styles.applyBtnText, applied && styles.appliedBtnText]}>
+                  {applied ? '✓ Applied' : 'Apply Now'}
+                </Text>
+              </TouchableOpacity>
             </View>
-            <Text style={styles.jobLocation}>📍 {job.location}</Text>
-            <Text style={styles.jobSalary}>💰 {job.salary_range}</Text>
-            <Text style={styles.jobDesc}>{job.job_description}</Text>
-            <TouchableOpacity style={styles.applyBtn}>
-              <Text style={styles.applyBtnText}>Apply Now</Text>
-            </TouchableOpacity>
-          </View>
-        ))
+          );
+        })
       )}
 
       <View style={{ height: 30 }} />
@@ -73,4 +108,6 @@ const styles = StyleSheet.create({
   jobDesc: { color: '#C9D3E8', fontSize: 13, lineHeight: 19, marginBottom: 14 },
   applyBtn: { backgroundColor: '#C9A84C', borderRadius: 10, padding: 12, alignItems: 'center' },
   applyBtnText: { color: '#0A1628', fontWeight: 'bold', fontSize: 14 },
+  appliedBtn: { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#10B981' },
+  appliedBtnText: { color: '#10B981' },
 });
