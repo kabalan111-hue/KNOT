@@ -37,7 +37,7 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <Text style={styles.logo}>KNOT</Text>
         <View style={styles.headerIcons}>
-          <TouchableOpacity style={styles.iconBtn}>
+          <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/notifications')}>
             <Text style={styles.iconText}>🔔</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconBtn}>
