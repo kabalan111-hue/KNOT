@@ -40,8 +40,8 @@ export default function HomeScreen() {
           <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/notifications')}>
             <Text style={styles.iconText}>🔔</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconBtn}>
-            <Text style={styles.iconText}>💬</Text>
+          <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/chat')}>
+            <Text style={styles.iconText} onPress={() => router.push('/chat')}>💬</Text>
           </TouchableOpacity>
         </View>
       </View>
