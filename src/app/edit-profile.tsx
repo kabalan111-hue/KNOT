@@ -1,8 +1,18 @@
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, Linking, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { supabase } from '../lib/supabase';
+
+const socialFields = [
+  { key: 'linkedin', label: '💼 LinkedIn', placeholder: 'username فقط (مثال: chadi-kabalan)' },
+  { key: 'instagram', label: '📷 Instagram', placeholder: 'username (مثال: shadi_kabalan)' },
+  { key: 'facebook', label: '👥 Facebook', placeholder: 'username' },
+  { key: 'twitter', label: '🐦 X (Twitter)', placeholder: 'username (مثال: shadi_kabalan)' },
+  { key: 'whatsapp', label: '💚 WhatsApp', placeholder: 'رقم مع رمز الدولة (مثال: 0097466622960)' },
+  { key: 'website', label: '🌐 Website', placeholder: 'www.static-group.com' },
+  { key: 'contact_email', label: '✉️ Email', placeholder: 'name@mail.com' },
+];
 
 export default function EditProfileScreen() {
   const [fullName, setFullName] = useState('');
@@ -10,9 +20,12 @@ export default function EditProfileScreen() {
   const [company, setCompany] = useState('');
   const [phone, setPhone] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [cvUrl, setCvUrl] = useState('');
+  const [socials, setSocials] = useState<Record<string, string>>({});
   const [profileId, setProfileId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingCV, setUploadingCV] = useState(false);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -34,6 +47,12 @@ export default function EditProfileScreen() {
         setCompany(data.company || '');
         setPhone(data.phone || '');
         setAvatarUrl(data.avatar_url || '');
+        setCvUrl(data.cv_url || '');
+        const s: Record<string, string> = {};
+        socialFields.forEach((f) => {
+          s[f.key] = data[f.key] || '';
+        });
+        setSocials(s);
       }
     }
     loadProfile();
@@ -84,13 +103,79 @@ export default function EditProfileScreen() {
     setUploading(false);
   }
 
+  async function uploadCVFile(file: Blob) {
+    setUploadingCV(true);
+    setMessage('');
+    try {
+      const fileName = `${profileId}-${Date.now()}.pdf`;
+      const { error: uploadError } = await supabase.storage
+        .from('cvs')
+        .upload(fileName, file, {
+          contentType: 'application/pdf',
+          upsert: true,
+        });
+
+      if (uploadError) {
+        setMessage('Error: ' + uploadError.message);
+        setUploadingCV(false);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('cvs')
+        .getPublicUrl(fileName);
+
+      setCvUrl(urlData.publicUrl);
+      setMessage('CV uploaded');
+    } catch (e: any) {
+      setMessage('Error: ' + (e?.message || 'could not upload CV'));
+    }
+    setUploadingCV(false);
+  }
+
+  function handlePickCV() {
+    if (Platform.OS !== 'web') {
+      setMessage('رفع الـ CV مدعوم حالياً على النسخة الإلكترونية');
+      return;
+    }
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/pdf';
+    input.onchange = (e: any) => {
+      const file = e?.target?.files?.[0];
+      if (file) uploadCVFile(file);
+    };
+    input.click();
+  }
+
+  function handleViewCV() {
+    if (!cvUrl) return;
+    if (Platform.OS === 'web') {
+      window.open(cvUrl, '_blank');
+    } else {
+      Linking.openURL(cvUrl);
+    }
+  }
+
   async function handleSave() {
     if (!profileId) return;
     setSaving(true);
     setMessage('');
+    const updates: Record<string, any> = {
+      full_name: fullName,
+      title: title,
+      company: company,
+      phone: phone,
+      avatar_url: avatarUrl,
+      cv_url: cvUrl || null,
+    };
+    socialFields.forEach((f) => {
+      const val = (socials[f.key] || '').trim();
+      updates[f.key] = val === '' ? null : val;
+    });
     const { error } = await supabase
       .from('profiles')
-      .update({ full_name: fullName, title: title, company: company, phone: phone, avatar_url: avatarUrl })
+      .update(updates)
       .eq('id', profileId);
     setSaving(false);
     if (error) {
@@ -164,11 +249,45 @@ export default function EditProfileScreen() {
           keyboardType="phone-pad"
         />
 
+        <Text style={styles.sectionTitle}>📄 CV (PDF)</Text>
+        <Text style={styles.sectionHint}>ارفع سيرتك الذاتية بصيغة PDF ليتمكن الآخرون من مشاهدتها من صفحتك.</Text>
+        <View style={styles.cvRow}>
+          <TouchableOpacity style={styles.cvBtn} onPress={handlePickCV} disabled={uploadingCV}>
+            <Text style={styles.cvBtnText}>{uploadingCV ? 'Uploading...' : (cvUrl ? '🔄 Replace CV' : '⬆️ Upload CV')}</Text>
+          </TouchableOpacity>
+          {cvUrl ? (
+            <TouchableOpacity style={styles.cvViewBtn} onPress={handleViewCV}>
+              <Text style={styles.cvViewText}>👁️ View</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+        {cvUrl ? <Text style={styles.cvStatus}>✅ CV مرفوع</Text> : null}
+
+        <Text style={styles.sectionTitle}>🔗 My Links</Text>
+        <Text style={styles.sectionHint}>حط اسم المستخدم فقط. خلّي الخانة فاضية إذا ما بدك الرابط يظهر.</Text>
+
+        {socialFields.map((f) => (
+          <View key={f.key}>
+            <Text style={styles.label}>{f.label}</Text>
+            <TextInput
+              style={styles.input}
+              value={socials[f.key] || ''}
+              onChangeText={(t) => setSocials((prev) => ({ ...prev, [f.key]: t }))}
+              placeholder={f.placeholder}
+              placeholderTextColor="#8899BB"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
+        ))}
+
         <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={saving}>
           <Text style={styles.saveBtnText}>{saving ? 'Saving...' : 'Save'}</Text>
         </TouchableOpacity>
 
         {message ? <Text style={styles.message}>{message}</Text> : null}
+
+        <View style={{ height: 40 }} />
 
       </View>
 
@@ -193,4 +312,12 @@ const styles = StyleSheet.create({
   saveBtn: { backgroundColor: '#C9A84C', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 30 },
   saveBtnText: { color: '#0A1628', fontWeight: 'bold', fontSize: 16 },
   message: { color: '#10B981', fontSize: 14, textAlign: 'center', marginTop: 16, fontWeight: 'bold' },
+  sectionTitle: { color: '#FFFFFF', fontSize: 17, fontWeight: 'bold', marginTop: 30 },
+  sectionHint: { color: '#8899BB', fontSize: 12, marginTop: 4, lineHeight: 18 },
+  cvRow: { flexDirection: 'row', gap: 10, marginTop: 12 },
+  cvBtn: { flex: 1, backgroundColor: '#1A3A6B', borderWidth: 1, borderColor: '#2E5FA3', borderRadius: 12, padding: 14, alignItems: 'center' },
+  cvBtnText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 14 },
+  cvViewBtn: { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#C9A84C', borderRadius: 12, paddingHorizontal: 18, justifyContent: 'center', alignItems: 'center' },
+  cvViewText: { color: '#C9A84C', fontWeight: 'bold', fontSize: 14 },
+  cvStatus: { color: '#10B981', fontSize: 13, marginTop: 8, fontWeight: 'bold' },
 });
