@@ -6,7 +6,7 @@ export default function ReportsScreen() {
   const [isOrganizer, setIsOrganizer] = useState<boolean | null>(null);
   const [events, setEvents] = useState<any[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
-  const [tab, setTab] = useState<'inside' | 'search' | 'time'>('inside');
+  const [tab, setTab] = useState<'inside' | 'search' | 'time' | 'peak'>('inside');
 
   const [insideList, setInsideList] = useState<any[]>([]);
   const [loadingInside, setLoadingInside] = useState(false);
@@ -16,6 +16,9 @@ export default function ReportsScreen() {
 
   const [timeValue, setTimeValue] = useState('');
   const [timeResults, setTimeResults] = useState<any[]>([]);
+
+  const [peakData, setPeakData] = useState<any>(null);
+  const [loadingPeak, setLoadingPeak] = useState(false);
 
   useEffect(() => {
     async function init() {
@@ -47,6 +50,13 @@ export default function ReportsScreen() {
     setLoadingInside(false);
   }
 
+  async function loadPeak(ev: any) {
+    setLoadingPeak(true);
+    const { data } = await supabase.rpc('report_peak_times', { p_event_id: ev.id });
+    setPeakData(data || null);
+    setLoadingPeak(false);
+  }
+
   function selectEvent(ev: any) {
     setSelectedEvent(ev);
     setTab('inside');
@@ -54,6 +64,7 @@ export default function ReportsScreen() {
     setTimeResults([]);
     setSearchQuery('');
     setTimeValue('');
+    setPeakData(null);
     loadInside(ev);
   }
 
@@ -79,6 +90,14 @@ export default function ReportsScreen() {
   function fmtTime(t: string) {
     if (!t) return '—';
     return new Date(t).toLocaleString();
+  }
+
+  function fmtHour(h: number) {
+    if (h === null || h === undefined) return '—';
+    const period = h < 12 ? 'AM' : 'PM';
+    let hr12 = h % 12;
+    if (hr12 === 0) hr12 = 12;
+    return `${hr12}:00 ${period}`;
   }
 
   function exportPDF() {
@@ -189,6 +208,9 @@ export default function ReportsScreen() {
             <TouchableOpacity style={[styles.tab, tab === 'inside' && styles.tabActive]} onPress={() => { setTab('inside'); loadInside(selectedEvent); }}>
               <Text style={[styles.tabText, tab === 'inside' && styles.tabTextActive]}>Inside now</Text>
             </TouchableOpacity>
+            <TouchableOpacity style={[styles.tab, tab === 'peak' && styles.tabActive]} onPress={() => { setTab('peak'); loadPeak(selectedEvent); }}>
+              <Text style={[styles.tabText, tab === 'peak' && styles.tabTextActive]}>Peak</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={[styles.tab, tab === 'search' && styles.tabActive]} onPress={() => setTab('search')}>
               <Text style={[styles.tabText, tab === 'search' && styles.tabTextActive]}>Search</Text>
             </TouchableOpacity>
@@ -216,6 +238,31 @@ export default function ReportsScreen() {
                   <Text style={styles.personTime}>In: {fmtTime(p.checked_in_at)}</Text>
                 </View>
               ))}
+            </View>
+          )}
+
+          {tab === 'peak' && (
+            <View style={styles.panel}>
+              {loadingPeak && <ActivityIndicator color="#C9A84C" style={{ marginTop: 20 }} />}
+              {!loadingPeak && peakData && peakData.total === 0 && <Text style={styles.empty}>No check-ins yet</Text>}
+              {!loadingPeak && peakData && peakData.total > 0 && (
+                <>
+                  <Text style={styles.countBig}>{fmtHour(peakData.busiest_hour)}</Text>
+                  <Text style={styles.countLabel}>Peak hour · {peakData.busiest_count} check-ins</Text>
+                  <Text style={styles.peakTotal}>Total check-ins: {peakData.total}</Text>
+                  <View style={styles.peakChart}>
+                    {peakData.hours.map((h: any) => (
+                      <View key={h.hour} style={styles.peakRow}>
+                        <Text style={styles.peakHour}>{fmtHour(h.hour)}</Text>
+                        <View style={styles.peakBarBg}>
+                          <View style={[styles.peakBarFill, { width: `${Math.max((h.count / peakData.busiest_count) * 100, 6)}%` }]} />
+                        </View>
+                        <Text style={styles.peakCount}>{h.count}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </>
+              )}
             </View>
           )}
 
@@ -289,14 +336,15 @@ const styles = StyleSheet.create({
   eventActive: { color: '#C9A84C', fontSize: 18, fontWeight: 'bold', textAlign: 'center', marginBottom: 6 },
   changeEvent: { marginBottom: 20 },
   changeEventText: { color: '#8899BB', fontSize: 13, textDecorationLine: 'underline' },
-  tabs: { flexDirection: 'row', width: '100%', marginBottom: 20, gap: 8 },
+  tabs: { flexDirection: 'row', width: '100%', marginBottom: 20, gap: 6 },
   tab: { flex: 1, paddingVertical: 12, borderRadius: 10, backgroundColor: '#1A3A6B', borderWidth: 1, borderColor: '#2E5FA3' },
   tabActive: { backgroundColor: '#C9A84C', borderColor: '#C9A84C' },
-  tabText: { color: '#FFFFFF', fontSize: 13, fontWeight: 'bold', textAlign: 'center' },
+  tabText: { color: '#FFFFFF', fontSize: 12, fontWeight: 'bold', textAlign: 'center' },
   tabTextActive: { color: '#0A1628' },
   panel: { width: '100%', alignItems: 'center' },
-  countBig: { fontSize: 48, fontWeight: 'bold', color: '#10B981' },
-  countLabel: { fontSize: 14, color: '#8899BB', marginBottom: 20 },
+  countBig: { fontSize: 44, fontWeight: 'bold', color: '#10B981', textAlign: 'center' },
+  countLabel: { fontSize: 14, color: '#8899BB', marginBottom: 6 },
+  peakTotal: { fontSize: 13, color: '#C9A84C', marginBottom: 16 },
   exportBtn: { backgroundColor: '#C9A84C', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 24, marginBottom: 20 },
   exportBtnText: { color: '#0A1628', fontSize: 14, fontWeight: 'bold' },
   empty: { color: '#8899BB', fontSize: 14, marginTop: 16 },
@@ -308,4 +356,10 @@ const styles = StyleSheet.create({
   personName: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
   personMeta: { color: '#8899BB', fontSize: 13, marginTop: 2 },
   personTime: { color: '#C9A84C', fontSize: 12, marginTop: 4 },
+  peakChart: { width: '100%', marginTop: 10 },
+  peakRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 8 },
+  peakHour: { color: '#8899BB', fontSize: 12, width: 70 },
+  peakBarBg: { flex: 1, height: 22, backgroundColor: '#1A3A6B', borderRadius: 6, overflow: 'hidden', borderWidth: 1, borderColor: '#2E5FA3' },
+  peakBarFill: { height: '100%', backgroundColor: '#C9A84C', borderRadius: 6 },
+  peakCount: { color: '#FFFFFF', fontSize: 13, fontWeight: 'bold', width: 28, textAlign: 'right' },
 });

@@ -41,7 +41,7 @@ export default function HomeScreen() {
             <Text style={styles.iconText}>🔔</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/chat')}>
-            <Text style={styles.iconText} onPress={() => router.push('/chat')}>💬</Text>
+            <Text style={styles.iconText}>💬</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -96,6 +96,22 @@ export default function HomeScreen() {
           </View>
         </View>
       ))}
+
+      {profile?.is_organizer && (
+        <>
+          <Text style={styles.sectionTitle}>🎪 Organizer Tools</Text>
+          <View style={styles.quickActions}>
+            <TouchableOpacity style={styles.organizerBtn} onPress={() => router.push('/scan')}>
+              <Text style={styles.quickIcon}>📷</Text>
+              <Text style={styles.quickText}>Scanner</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.organizerBtn} onPress={() => router.push('/reports')}>
+              <Text style={styles.quickIcon}>📊</Text>
+              <Text style={styles.quickText}>Reports</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
 
       <Text style={styles.sectionTitle}>Quick Actions</Text>
 
@@ -155,6 +171,7 @@ const styles = StyleSheet.create({
   activityTime: { fontSize: 11, color: '#8899BB', marginTop: 2 },
   quickActions: { flexDirection: 'row', marginHorizontal: 20, marginTop: 12, marginBottom: 30, gap: 10 },
   quickBtn: { flex: 1, backgroundColor: '#1A3A6B', borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#2E5FA3' },
+  organizerBtn: { flex: 1, backgroundColor: '#1A3A6B', borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#C9A84C' },
   quickIcon: { fontSize: 26, marginBottom: 6 },
   quickText: { color: '#FFFFFF', fontSize: 11, fontWeight: 'bold' },
 });
