@@ -134,6 +134,12 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
+      <TouchableOpacity style={styles.companyBtn} onPress={() => router.push('/company')}>
+        <Text style={styles.companyBtnText}>🏢 My Company</Text>
+      </TouchableOpacity>
+
+      <View style={{ height: 30 }} />
+
     </ScrollView>
   );
 }
@@ -169,9 +175,11 @@ const styles = StyleSheet.create({
   activityInfo: { flex: 1 },
   activityText: { fontSize: 13, color: '#FFFFFF', fontWeight: 'bold' },
   activityTime: { fontSize: 11, color: '#8899BB', marginTop: 2 },
-  quickActions: { flexDirection: 'row', marginHorizontal: 20, marginTop: 12, marginBottom: 30, gap: 10 },
+  quickActions: { flexDirection: 'row', marginHorizontal: 20, marginTop: 12, marginBottom: 16, gap: 10 },
   quickBtn: { flex: 1, backgroundColor: '#1A3A6B', borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#2E5FA3' },
   organizerBtn: { flex: 1, backgroundColor: '#1A3A6B', borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#C9A84C' },
   quickIcon: { fontSize: 26, marginBottom: 6 },
   quickText: { color: '#FFFFFF', fontSize: 11, fontWeight: 'bold' },
+  companyBtn: { backgroundColor: '#1A3A6B', marginHorizontal: 20, borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#C9A84C' },
+  companyBtnText: { color: '#C9A84C', fontSize: 15, fontWeight: 'bold' },
 });

@@ -65,6 +65,8 @@ export default function Layout() {
       <Tabs.Screen name="reports" options={{ href: null }} />
       <Tabs.Screen name="exhibitions" options={{ href: null }} />
       <Tabs.Screen name="edit-profile" options={{ href: null }} />
+      <Tabs.Screen name="company" options={{ href: null }} />
+      <Tabs.Screen name="edit-company" options={{ href: null }} />
       <Tabs.Screen name="p/[slug]" options={{ href: null }} />
     </Tabs>
   );
