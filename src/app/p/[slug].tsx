@@ -14,7 +14,7 @@ export default function PublicProfileScreen() {
     async function loadProfile() {
       const { data } = await supabase
         .from('profiles')
-        .select('id, full_name, title, company, avatar_url, connections, whatsapp, instagram, linkedin, facebook, website')
+        .select('id, full_name, title, company, avatar_url, connections, whatsapp, instagram, linkedin, facebook, website, cv_url, contact_email, twitter, hidden_fields')
         .eq('slug', slug as string)
         .limit(1)
         .single();
@@ -72,7 +72,9 @@ export default function PublicProfileScreen() {
     );
   }
 
-  const hasSocial = profile?.whatsapp || profile?.instagram || profile?.linkedin || profile?.facebook || profile?.website;
+  const hf: string[] = profile?.hidden_fields || [];
+  const show = (k: string) => profile?.[k] && !hf.includes(k);
+  const hasSocial = show('whatsapp') || show('instagram') || show('linkedin') || show('facebook') || show('website');
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -100,31 +102,31 @@ export default function PublicProfileScreen() {
 
         {hasSocial && (
           <View style={styles.socialRow}>
-            {profile?.whatsapp && (
+            {show('whatsapp') && (
               <TouchableOpacity style={styles.socialBtn} onPress={() => openLink(`https://wa.me/${profile.whatsapp}`)}>
                 <Text style={styles.socialIcon}>💬</Text>
                 <Text style={styles.socialLabel}>WhatsApp</Text>
               </TouchableOpacity>
             )}
-            {profile?.instagram && (
+            {show('instagram') && (
               <TouchableOpacity style={styles.socialBtn} onPress={() => openLink(`https://instagram.com/${profile.instagram}`)}>
                 <Text style={styles.socialIcon}>📷</Text>
                 <Text style={styles.socialLabel}>Instagram</Text>
               </TouchableOpacity>
             )}
-            {profile?.linkedin && (
+            {show('linkedin') && (
               <TouchableOpacity style={styles.socialBtn} onPress={() => openLink(profile.linkedin)}>
                 <Text style={styles.socialIcon}>💼</Text>
                 <Text style={styles.socialLabel}>LinkedIn</Text>
               </TouchableOpacity>
             )}
-            {profile?.facebook && (
+            {show('facebook') && (
               <TouchableOpacity style={styles.socialBtn} onPress={() => openLink(profile.facebook)}>
                 <Text style={styles.socialIcon}>👥</Text>
                 <Text style={styles.socialLabel}>Facebook</Text>
               </TouchableOpacity>
             )}
-            {profile?.website && (
+            {show('website') && (
               <TouchableOpacity style={styles.socialBtn} onPress={() => openLink(profile.website)}>
                 <Text style={styles.socialIcon}>🌐</Text>
                 <Text style={styles.socialLabel}>Website</Text>

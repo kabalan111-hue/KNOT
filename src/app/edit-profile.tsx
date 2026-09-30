@@ -22,6 +22,7 @@ export default function EditProfileScreen() {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [cvUrl, setCvUrl] = useState('');
   const [socials, setSocials] = useState<Record<string, string>>({});
+  const [hidden, setHidden] = useState<string[]>([]);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -53,10 +54,15 @@ export default function EditProfileScreen() {
           s[f.key] = data[f.key] || '';
         });
         setSocials(s);
+        setHidden(data.hidden_fields || []);
       }
     }
     loadProfile();
   }, []);
+
+  function toggleHidden(key: string) {
+    setHidden((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
+  }
 
   async function handlePickImage() {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -168,6 +174,7 @@ export default function EditProfileScreen() {
       phone: phone,
       avatar_url: avatarUrl,
       cv_url: cvUrl || null,
+      hidden_fields: hidden,
     };
     socialFields.forEach((f) => {
       const val = (socials[f.key] || '').trim();
@@ -249,7 +256,16 @@ export default function EditProfileScreen() {
           keyboardType="phone-pad"
         />
 
-        <Text style={styles.sectionTitle}>📄 CV (PDF)</Text>
+        <View style={styles.labelRow}>
+          <Text style={styles.sectionTitle}>📄 CV (PDF)</Text>
+          {cvUrl ? (
+            <TouchableOpacity onPress={() => toggleHidden('cv')}>
+              <Text style={hidden.includes('cv') ? styles.hiddenTag : styles.shownTag}>
+                {hidden.includes('cv') ? '🙈 مخفي' : '👁️ ظاهر'}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
         <Text style={styles.sectionHint}>ارفع سيرتك الذاتية بصيغة PDF ليتمكن الآخرون من مشاهدتها من صفحتك.</Text>
         <View style={styles.cvRow}>
           <TouchableOpacity style={styles.cvBtn} onPress={handlePickCV} disabled={uploadingCV}>
@@ -264,11 +280,18 @@ export default function EditProfileScreen() {
         {cvUrl ? <Text style={styles.cvStatus}>✅ CV مرفوع</Text> : null}
 
         <Text style={styles.sectionTitle}>🔗 My Links</Text>
-        <Text style={styles.sectionHint}>حط اسم المستخدم فقط. خلّي الخانة فاضية إذا ما بدك الرابط يظهر.</Text>
+        <Text style={styles.sectionHint}>حط اسم المستخدم فقط. استخدم زر العين لإخفاء أي رابط عن صفحتك العامة.</Text>
 
         {socialFields.map((f) => (
           <View key={f.key}>
-            <Text style={styles.label}>{f.label}</Text>
+            <View style={styles.labelRow}>
+              <Text style={styles.label}>{f.label}</Text>
+              <TouchableOpacity onPress={() => toggleHidden(f.key)}>
+                <Text style={hidden.includes(f.key) ? styles.hiddenTag : styles.shownTag}>
+                  {hidden.includes(f.key) ? '🙈 مخفي' : '👁️ ظاهر'}
+                </Text>
+              </TouchableOpacity>
+            </View>
             <TextInput
               style={styles.input}
               value={socials[f.key] || ''}
@@ -314,6 +337,9 @@ const styles = StyleSheet.create({
   message: { color: '#10B981', fontSize: 14, textAlign: 'center', marginTop: 16, fontWeight: 'bold' },
   sectionTitle: { color: '#FFFFFF', fontSize: 17, fontWeight: 'bold', marginTop: 30 },
   sectionHint: { color: '#8899BB', fontSize: 12, marginTop: 4, lineHeight: 18 },
+  labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  shownTag: { color: '#10B981', fontSize: 12, fontWeight: 'bold', marginTop: 16 },
+  hiddenTag: { color: '#8899BB', fontSize: 12, fontWeight: 'bold', marginTop: 16 },
   cvRow: { flexDirection: 'row', gap: 10, marginTop: 12 },
   cvBtn: { flex: 1, backgroundColor: '#1A3A6B', borderWidth: 1, borderColor: '#2E5FA3', borderRadius: 12, padding: 14, alignItems: 'center' },
   cvBtnText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 14 },

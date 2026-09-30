@@ -48,6 +48,8 @@ export default function QRScreen() {
     { key: 'contact_email', label: 'Email', icon: '✉️', prefix: 'mailto:' },
   ];
 
+  const hiddenFields: string[] = profile?.hidden_fields || [];
+
   function openSocial(prefix: string, value: string) {
     let url = value;
     if (prefix && !value.startsWith('http') && !value.startsWith('mailto:')) {
@@ -117,10 +119,10 @@ export default function QRScreen() {
 
       <Text style={styles.sectionTitle}>My Links</Text>
       <View style={styles.socialCard}>
-        {socials.filter(s => profile?.[s.key] && String(profile[s.key]).trim() !== '').length === 0 ? (
+        {socials.filter(s => profile?.[s.key] && String(profile[s.key]).trim() !== '' && !hiddenFields.includes(s.key)).length === 0 ? (
           <Text style={styles.emptyText}>No links added yet. Add them from Edit Profile.</Text>
         ) : (
-          socials.filter(s => profile?.[s.key] && String(profile[s.key]).trim() !== '').map((s) => (
+          socials.filter(s => profile?.[s.key] && String(profile[s.key]).trim() !== '' && !hiddenFields.includes(s.key)).map((s) => (
             <TouchableOpacity key={s.key} style={styles.socialRow} onPress={() => openSocial(s.prefix, profile[s.key])}>
               <Text style={styles.socialIcon}>{s.icon}</Text>
               <Text style={styles.socialLabel}>{s.label}</Text>
@@ -130,7 +132,7 @@ export default function QRScreen() {
         )}
       </View>
 
-      {profile?.cv_url ? (
+      {profile?.cv_url && !hiddenFields.includes('cv') ? (
         <TouchableOpacity style={styles.cvBtn} onPress={() => Linking.openURL(profile.cv_url).catch(() => {})}>
           <Text style={styles.cvBtnText}>📄 View / Download CV</Text>
         </TouchableOpacity>
