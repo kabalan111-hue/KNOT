@@ -37,6 +37,10 @@ export default function ExhibitionsScreen() {
 
       <Text style={styles.subTitle}>{exhibitions.length} upcoming events</Text>
 
+      <TouchableOpacity style={styles.scannerBtn} onPress={() => router.push('/scan')}>
+        <Text style={styles.scannerBtnText}>📷  ماسح دخول المعرض (للمنظّمين)</Text>
+      </TouchableOpacity>
+
       {loading ? (
         <ActivityIndicator size="large" color="#C9A84C" style={{ marginTop: 40 }} />
       ) : (
@@ -68,7 +72,9 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 50, paddingHorizontal: 20, paddingBottom: 10 },
   backText: { color: '#C9A84C', fontSize: 16, fontWeight: 'bold', width: 50 },
   headerTitle: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' },
-  subTitle: { color: '#8899BB', fontSize: 13, paddingHorizontal: 20, marginBottom: 16 },
+  subTitle: { color: '#8899BB', fontSize: 13, paddingHorizontal: 20, marginBottom: 12 },
+  scannerBtn: { backgroundColor: '#1A3A6B', marginHorizontal: 20, marginBottom: 16, borderRadius: 12, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: '#C9A84C' },
+  scannerBtnText: { color: '#C9A84C', fontWeight: 'bold', fontSize: 14 },
   exCard: { backgroundColor: '#1A3A6B', marginHorizontal: 20, marginBottom: 12, borderRadius: 16, padding: 18, borderWidth: 1, borderColor: '#2E5FA3' },
   exHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
   exTitle: { fontSize: 16, fontWeight: 'bold', color: '#FFFFFF', flex: 1, marginRight: 8 },

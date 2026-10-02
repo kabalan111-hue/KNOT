@@ -40,7 +40,13 @@
       "expo-font",
       "expo-image",
       "expo-status-bar",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "يحتاج تطبيق KNOT إلى الكاميرا لمسح رموز QR عند تسجيل دخول الحضور في المعارض."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

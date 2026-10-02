@@ -1,3 +1,4 @@
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { supabase } from '../lib/supabase';
@@ -9,6 +10,8 @@ export default function ScanScreen() {
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<any>(null);
   const scannerRef = useRef<any>(null);
+  const scannedRef = useRef(false);
+  const [permission, requestPermission] = useCameraPermissions();
 
   useEffect(() => {
     async function init() {
@@ -36,28 +39,42 @@ export default function ScanScreen() {
   }, []);
 
   async function startScanner() {
-    if (Platform.OS !== 'web') return;
     setResult(null);
-    setScanning(true);
+    scannedRef.current = false;
 
-    const { Html5Qrcode } = await import('html5-qrcode');
-    setTimeout(async () => {
-      const scanner = new Html5Qrcode('reader');
-      scannerRef.current = scanner;
-      try {
-        await scanner.start(
-          { facingMode: 'environment' },
-          { fps: 10, qrbox: { width: 250, height: 250 } },
-          async (decodedText: string) => {
-            await handleScan(decodedText);
-          },
-          () => {}
-        );
-      } catch (err) {
-        setResult({ status: 'error', message: 'Camera error' });
-        setScanning(false);
+    // --- WEB: html5-qrcode ---
+    if (Platform.OS === 'web') {
+      setScanning(true);
+      const { Html5Qrcode } = await import('html5-qrcode');
+      setTimeout(async () => {
+        const scanner = new Html5Qrcode('reader');
+        scannerRef.current = scanner;
+        try {
+          await scanner.start(
+            { facingMode: 'environment' },
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            async (decodedText: string) => {
+              await handleScan(decodedText);
+            },
+            () => {}
+          );
+        } catch (err) {
+          setResult({ status: 'error', message: 'Camera error' });
+          setScanning(false);
+        }
+      }, 300);
+      return;
+    }
+
+    // --- NATIVE (iOS/Android): expo-camera ---
+    if (!permission?.granted) {
+      const res = await requestPermission();
+      if (!res?.granted) {
+        setResult({ status: 'error', message: 'تم رفض إذن الكاميرا' });
+        return;
       }
-    }, 300);
+    }
+    setScanning(true);
   }
 
   async function stopScanner() {
@@ -69,6 +86,13 @@ export default function ScanScreen() {
       scannerRef.current = null;
     }
     setScanning(false);
+  }
+
+  function onNativeBarcode(scan: { data?: string }) {
+    if (scannedRef.current) return;
+    scannedRef.current = true;
+    setScanning(false);
+    if (scan?.data) handleScan(scan.data);
   }
 
   async function handleScan(decodedText: string) {
@@ -136,9 +160,26 @@ export default function ScanScreen() {
             </TouchableOpacity>
           )}
 
-          {scanning && (
+          {scanning && Platform.OS === 'web' && (
             <View>
               <View nativeID="reader" style={styles.reader} />
+              <TouchableOpacity style={styles.stopBtn} onPress={stopScanner}>
+                <Text style={styles.stopBtnText}>Stop</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {scanning && Platform.OS !== 'web' && (
+            <View>
+              <View style={styles.reader}>
+                <CameraView
+                  style={StyleSheet.absoluteFill}
+                  facing="back"
+                  barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+                  onBarcodeScanned={onNativeBarcode}
+                />
+                <View style={styles.scanFrame} />
+              </View>
               <TouchableOpacity style={styles.stopBtn} onPress={stopScanner}>
                 <Text style={styles.stopBtnText}>Stop</Text>
               </TouchableOpacity>
@@ -200,7 +241,8 @@ const styles = StyleSheet.create({
   changeEventText: { color: '#8899BB', fontSize: 13, textDecorationLine: 'underline' },
   scanBtn: { backgroundColor: '#C9A84C', borderRadius: 12, paddingVertical: 16, paddingHorizontal: 40, width: '100%' },
   scanBtnText: { color: '#0A1628', fontSize: 16, fontWeight: 'bold', textAlign: 'center' },
-  reader: { width: 300, height: 300, backgroundColor: '#000000', borderRadius: 12, overflow: 'hidden', marginBottom: 16 },
+  reader: { width: 300, height: 300, backgroundColor: '#000000', borderRadius: 12, overflow: 'hidden', marginBottom: 16, alignSelf: 'center' },
+  scanFrame: { position: 'absolute', top: 40, left: 40, right: 40, bottom: 40, borderWidth: 3, borderColor: '#C9A84C', borderRadius: 16 },
   stopBtn: { backgroundColor: '#1A3A6B', borderRadius: 12, paddingVertical: 12, width: '100%' },
   stopBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: 'bold', textAlign: 'center' },
   resultBox: { width: '100%', borderRadius: 16, padding: 24, alignItems: 'center', marginTop: 10 },
