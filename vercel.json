@@ -3,5 +3,8 @@
   "outputDirectory": "dist",
   "framework": null,
   "cleanUrls": true,
-  "rewrites": [{ "source": "/:path*", "destination": "/" }]
+  "rewrites": [
+    { "source": "/privacy", "destination": "/privacy.html" },
+    { "source": "/:path*", "destination": "/" }
+  ]
 }
