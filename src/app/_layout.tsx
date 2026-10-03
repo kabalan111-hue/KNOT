@@ -22,22 +22,22 @@ export default function Layout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Feed',
-          tabBarIcon: () => <Text style={{fontSize: 22}}>🏠</Text>,
+          title: 'My ID',
+          tabBarIcon: () => <Text style={{fontSize: 22}}>🪪</Text>,
+        }}
+      />
+      <Tabs.Screen
+        name="exhibitions"
+        options={{
+          title: 'Exhibition',
+          tabBarIcon: () => <Text style={{fontSize: 22}}>🎪</Text>,
         }}
       />
       <Tabs.Screen
         name="posts"
         options={{
-          title: 'Community',
+          title: 'KNOT',
           tabBarIcon: () => <Text style={{fontSize: 22}}>🌐</Text>,
-        }}
-      />
-      <Tabs.Screen
-        name="qr"
-        options={{
-          title: 'My ID',
-          tabBarIcon: () => <Text style={{fontSize: 22}}>🆔</Text>,
         }}
       />
       <Tabs.Screen
@@ -55,6 +55,7 @@ export default function Layout() {
         }}
       />
 
+      <Tabs.Screen name="qr" options={{ href: null }} />
       <Tabs.Screen name="checkin" options={{ href: null, tabBarStyle: { display: 'none' } }} />
       <Tabs.Screen name="feed" options={{ href: null }} />
       <Tabs.Screen name="jobs" options={{ href: null }} />
@@ -63,7 +64,6 @@ export default function Layout() {
       <Tabs.Screen name="verify" options={{ href: null }} />
       <Tabs.Screen name="explore" options={{ href: null }} />
       <Tabs.Screen name="reports" options={{ href: null }} />
-      <Tabs.Screen name="exhibitions" options={{ href: null }} />
       <Tabs.Screen name="edit-profile" options={{ href: null }} />
       <Tabs.Screen name="company" options={{ href: null }} />
       <Tabs.Screen name="edit-company" options={{ href: null }} />
